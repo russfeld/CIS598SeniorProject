@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System;
 
 namespace CodioToHugoConverter
 {
@@ -359,6 +361,10 @@ namespace CodioToHugoConverter
                 //this string will replace any instances of .guides/img/ seen within Codio files with the Hugo equivalent relative path
                 string imageReplacementString = imageReplacementBuilder.ToString();
 
+                //russfeld
+                //regex pattern match for YouTube videos
+                string pattern = @"<iframe.*src=""https:\/\/www\.youtube-nocookie\.com\/embed\/(\S{11})"".*<\/iframe>";
+
                 foreach (string row in page.Header)
                 {
                     writer.WriteLine(row);
@@ -399,8 +405,22 @@ namespace CodioToHugoConverter
 
                         writer.WriteLine(newLine);
                     }
+                    //russfeld
+                    //youtube conversion
+                    else if (line.Contains("/embed/"))
+                    {
+                        Console.WriteLine("Youtube Found! " + line);
+                        foreach (Match match in Regex.Matches(line, pattern))
+                        {
+                            Console.WriteLine("Match: {0}", match.Value);
+                            Console.WriteLine("YouTube ID {0}", match.Groups[1].Captures[0]);
+                            writer.WriteLine("{{{{% youtube {0} %}}}}", match.Groups[1].Captures[0]);
+                        }
+                    }
                     else
+                    {
                         writer.WriteLine(outputLine);
+                    }
                 }
             }
         }
